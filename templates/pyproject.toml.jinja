@@ -1,0 +1,76 @@
+[project]
+name = "{{ project_name }}"
+version = "0.1.0"
+description = "{{ project_description | default('A Python project') }}"
+readme = "README.md"
+requires-python = ">={{ python_version_primary }}"
+authors = [
+    {name = "{{ author_name }}", email = "{{ author_email }}"}
+]
+
+keywords = ["python"]
+
+dependencies = [
+    # Add your project dependencies here
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.3.0"
+]
+
+# Ruff configuration
+[tool.ruff]
+line-length = 150
+target-version = "py{{ python_version_primary | replace('.', '') }}"
+
+# Exclude directories
+exclude = [
+    ".venv",
+    "__pycache__",
+    "*.pyc",
+]
+
+[tool.ruff.lint]
+# Enable specific rule sets
+select = [
+    # Core essentials (always enabled)
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes (undefined names, unused imports)
+    "I",    # isort (import sorting)
+    "UP",   # pyupgrade (modern Python syntax)
+    "B",    # flake8-bugbear (common bugs)
+    
+    # Code quality (recommended)
+    "N",    # pep8-naming
+    "C4",   # flake8-comprehensions
+    "SIM",  # flake8-simplify
+    "RET",  # flake8-return
+    "RUF",  # Ruff-specific rules
+    
+    # Stricter rules (enable when ready)
+    # "S",    # flake8-bandit (security) - can have false positives
+    # "ARG",  # flake8-unused-arguments - noisy on prototypes
+    # "PTH",  # flake8-use-pathlib - requires refactoring
+    # "PERF", # Perflint (performance anti-patterns)
+    # "T20",  # flake8-print (no print statements)
+    # "DJ",   # flake8-django (only for Django projects)
+    
+    # Consider eventually
+    # "ANN",  # flake8-annotations - requires type hints everywhere
+    # "PL",   # Pylint - comprehensive but can be overwhelming
+    # "A",    # flake8-builtins - prevents shadowing built-ins
+]
+
+# Ignore specific rules
+ignore = [
+    "E501",  # line too long (handled by formatter)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"tests/*" = ["ARG001", "ARG002"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["{{ _project_name_sanitized }}"]
