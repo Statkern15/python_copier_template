@@ -1,0 +1,52 @@
+## ------------------------------- Builder Stage ------------------------------ ## 
+FROM python:{{ python_version_primary }}-bookworm AS builder
+
+RUN apt-get update && apt-get install --no-install-recommends -y \
+        build-essential && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Download and install the `uv` tool (astral). It's safer to pin the
+# installer version. Provide `uv_version` in copier answers to pin.
+{% if uv_version is defined and uv_version %}
+ADD https://astral.sh/uv/install-{{ uv_version }}.sh /install.sh
+{% else %}
+ADD https://astral.sh/uv/install.sh /install.sh
+{% endif %}
+RUN chmod +x /install.sh && /install.sh && rm /install.sh
+
+# Ensure `uv` (installed to the user's local bin) is on PATH
+ENV PATH="/root/.local/bin:${PATH}"
+
+WORKDIR /app
+
+# Copy dependency files first for better layer caching
+COPY pyproject.toml uv.lock* ./
+
+RUN uv sync
+
+# Copy source code after installing dependencies
+COPY . .
+
+## ------------------------------- Production Stage ------------------------------ ##
+FROM python:{{ python_version_primary }}-slim AS production
+
+# Python environment best practices
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+RUN useradd --create-home nonrootuser
+
+WORKDIR /app
+
+# Copy with proper ownership for non-root user
+COPY --from=builder --chown=nonrootuser:nonrootuser /app/.venv .venv
+COPY --chown=nonrootuser:nonrootuser . .
+
+USER nonrootuser
+
+# Set up environment variables for production
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Start the application using `uv` to run the main script. Adjust path if your
+# entrypoint is elsewhere (e.g. `src/main.py`).
+CMD ["python", "src/main.py"]
