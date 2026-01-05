@@ -45,6 +45,6 @@ python_version_primary:
 # Optional: pin the astral `uv` installer script. Leave empty to use latest.
 uv_version:
     type: str
-    default: "0.8.2"
+    default: "0.9.21"
     help: Optional version string to pin the astral `uv` installer, e.g. "0.8.2". Leave empty to use latest installer.
     when: false

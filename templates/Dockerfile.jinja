@@ -1,14 +1,9 @@
 ## ------------------------------- Builder Stage ------------------------------ ## 
 FROM python:{{ python_version_primary }}-bookworm AS builder
 
-RUN apt-get update && apt-get install --no-install-recommends -y \
-        build-essential && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Download and install the `uv` tool (astral). It's safer to pin the
-# installer version. Provide `uv_version` in copier answers to pin.
+# Download and install the `uv` tool (astral's package manager)
 {% if uv_version is defined and uv_version %}
-ADD https://astral.sh/uv/install-{{ uv_version }}.sh /install.sh
+ADD https://astral.sh/uv/{{ uv_version }}/install.sh /install.sh
 {% else %}
 ADD https://astral.sh/uv/install.sh /install.sh
 {% endif %}
@@ -47,6 +42,5 @@ USER nonrootuser
 # Set up environment variables for production
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Start the application using `uv` to run the main script. Adjust path if your
-# entrypoint is elsewhere (e.g. `src/main.py`).
+# Start the application
 CMD ["python", "src/main.py"]
